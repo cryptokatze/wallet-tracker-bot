@@ -51,10 +51,19 @@ export async function getWalletTokenBalances(
   const apiKey = getMoralisApiKey();
   const chainId = MORALIS_CHAIN_IDS[chain];
 
-  console.log(`[Moralis] ${chain} 토큰 잔액 조회 시작: ${address}`);
+  // 주소 정규화 (소문자로 변환, Moralis는 대소문자 무관)
+  const normalizedAddress = address.trim().toLowerCase();
+
+  // 기본 형식 검증 (0x + 40자리 16진수) - 소문자 변환 후이므로 [a-f0-9]만 체크
+  if (!/^0x[a-f0-9]{40}$/.test(normalizedAddress)) {
+    console.error(`[Moralis] 잘못된 주소 형식: ${address}`);
+    throw new Error('잘못된 지갑 주소 형식입니다');
+  }
+
+  console.log(`[Moralis] ${chain} 토큰 잔액 조회 시작: ${normalizedAddress}`);
 
   try {
-    const url = `https://deep-index.moralis.io/api/v2.2/wallets/${address}/tokens?chain=${chainId}`;
+    const url = `https://deep-index.moralis.io/api/v2.2/wallets/${normalizedAddress}/tokens?chain=${chainId}`;
 
     const response = await fetch(url, {
       method: 'GET',
